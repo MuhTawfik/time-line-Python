@@ -1,0 +1,33 @@
+d = {'name': ['Historical' ,'Target', 'Active', 'Check'], 
+     'start': ['2015-02-01',   '2018-11-01', '2019-02-28','2019-10-31'  ], 
+     'end': ['2018-11-01', '2019-02-28', '2019-10-31',  '2020-04-30'],
+     'is.critical':[False,True,False,True]
+    }
+tasks_data_plt = pd.DataFrame(data=d)
+months = mdates.MonthLocator()  # every month
+date_fmt = mdates.DateFormatter('%Y-%m-%d')
+# Create duration column for bars sizes
+tasks_data_plt['start'] = pd.to_datetime(tasks_data_plt['start'])
+tasks_data_plt['end'] = pd.to_datetime(tasks_data_plt['end'])
+tasks_data_plt['duration'] = tasks_data_plt['end'] - tasks_data_plt['start']
+# Preperation to have locations of the bars on the y-axis
+tasks = {task : (i+1)*10 for i, task in enumerate( dict.fromkeys(tasks_data_plt['name']) )}
+# Override pandas mandatory conversion to Timestamp
+start_times = [np.datetime64(t, 'D') for t in tasks_data_plt['start'] ]
+
+fig, ax_gnt = plt.subplots(figsize = (40, 18))
+# Add bars for each duration
+for i, t in enumerate(tasks_data_plt['name']):
+    ax_gnt.broken_barh([(start_times[i], tasks_data_plt['duration'][i])], (tasks[t], 10),
+                        facecolors = ('tab:red') if tasks_data_plt['is.critical'][i] else ('tab:grey')) 
+ax_gnt.grid(True)
+
+ax_gnt.set_yticks([i + 5 for i in tasks.values()]) 
+ax_gnt.set_yticklabels(dict.fromkeys(tasks_data_plt['name']).keys()) 
+# Format the x-axis
+ax_gnt.xaxis_date()
+ax_gnt.xaxis.set_major_locator(months)
+ax_gnt.xaxis.set_major_formatter(date_fmt) 
+fig.autofmt_xdate()
+plt.xticks(rotation=90)
+plt.rcParams.update({'font.size': 30})
